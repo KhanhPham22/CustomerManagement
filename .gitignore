@@ -1,0 +1,17 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build output
+bin/
+obj/
+
+# User-specific files
+*.user
+*.rsuser
+*.sln.docstates
+
+# OS files
+.DS_Store
+Thumbs.db
