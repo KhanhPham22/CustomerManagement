@@ -1,0 +1,177 @@
+﻿@page "/customers/new"
+@page "/customers/edit/{Id:int}"
+
+@using CustomerManagement.Blazor.Models
+@using CustomerManagement.Blazor.Services
+@using System.ComponentModel.DataAnnotations
+@inject CustomerApiService CustomerApiService
+@inject NavigationManager Navigation
+
+<PageTitle>@(IsEditMode ? "Edit Customer" : "Add Customer")</PageTitle>
+
+<h1>@(IsEditMode ? "Edit Customer" : "Add Customer")</h1>
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <EditForm Model="customer" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+
+        <div class="mb-3">
+            <label class="form-label">Customer Code</label>
+            <InputText class="form-control"
+                       @bind-Value="customer.CustomerCode" />
+            <ValidationMessage For="@(() => customer.CustomerCode)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <InputText class="form-control"
+                       @bind-Value="customer.FullName" />
+            <ValidationMessage For="@(() => customer.FullName)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <InputText class="form-control"
+                       @bind-Value="customer.Email" />
+            <ValidationMessage For="@(() => customer.Email)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Phone Number</label>
+            <InputText class="form-control"
+                       @bind-Value="customer.PhoneNumber" />
+            <ValidationMessage For="@(() => customer.PhoneNumber)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Date of Birth</label>
+            <InputDate class="form-control"
+                       @bind-Value="customer.DateOfBirth" />
+            <ValidationMessage For="@(() => customer.DateOfBirth)" />
+        </div>
+
+        <div class="form-check mb-3">
+            <InputCheckbox class="form-check-input"
+                           @bind-Value="customer.IsActive" />
+            <label class="form-check-label">
+                Active
+            </label>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="alert alert-danger">
+                @errorMessage
+            </div>
+        }
+
+        <button type="submit" class="btn btn-primary me-2">
+            @(IsEditMode ? "Update" : "Create")
+        </button>
+
+        <button type="button"
+                class="btn btn-secondary"
+                @onclick="Cancel">
+            Cancel
+        </button>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private CustomerRequestModel customer = new();
+
+    private bool isLoading;
+
+    private string? errorMessage;
+
+    private bool IsEditMode => Id.HasValue;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!IsEditMode)
+        {
+            return;
+        }
+
+        isLoading = true;
+
+        var existingCustomer = await CustomerApiService.GetCustomerAsync(Id!.Value);
+
+        if (existingCustomer == null)
+        {
+            Navigation.NavigateTo("/customers");
+            return;
+        }
+
+        customer = new CustomerRequestModel
+            {
+                CustomerCode = existingCustomer.CustomerCode,
+                FullName = existingCustomer.FullName,
+                Email = existingCustomer.Email,
+                PhoneNumber = existingCustomer.PhoneNumber,
+                DateOfBirth = existingCustomer.DateOfBirth,
+                IsActive = existingCustomer.IsActive
+            };
+
+        isLoading = false;
+    }
+
+    private async Task HandleSubmit()
+    {
+        errorMessage = null;
+
+        try
+        {
+            if (IsEditMode)
+            {
+                await CustomerApiService.UpdateCustomerAsync(Id!.Value, customer);
+            }
+            else
+            {
+                await CustomerApiService.CreateCustomerAsync(customer);
+            }
+
+            Navigation.NavigateTo("/customers");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/customers");
+    }
+
+    private class CustomerRequestModel
+    {
+        [Required]
+        [MaxLength(20)]
+        public string CustomerCode { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(100)]
+        public string FullName { get; set; } = string.Empty;
+
+        [EmailAddress]
+        [MaxLength(150)]
+        public string? Email { get; set; }
+
+        [Required]
+        [MaxLength(20)]
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        public DateTime? DateOfBirth { get; set; }
+
+        public bool IsActive { get; set; } = true;
+    }
+}

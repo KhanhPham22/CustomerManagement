@@ -1,10 +1,16 @@
 using CustomerManagement.Blazor.Components;
+using CustomerManagement.Blazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddHttpClient<CustomerApiService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7167/");
+});
 
 var app = builder.Build();
 

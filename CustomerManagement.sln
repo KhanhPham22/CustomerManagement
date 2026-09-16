@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34714.143
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerManagement.Api", "CustomerManagement.Api\CustomerManagement.Api.csproj", "{48EFCAE8-11C3-4668-B67C-90AA439F7BD2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomerManagement.Api", "CustomerManagement.Api\CustomerManagement.Api.csproj", "{48EFCAE8-11C3-4668-B67C-90AA439F7BD2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerManagement.Blazor", "CustomerManagement.Blazor\CustomerManagement.Blazor.csproj", "{43380DE3-72F6-4ED9-971C-4C973B93EE0D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomerManagement.Blazor", "CustomerManagement.Blazor\CustomerManagement.Blazor.csproj", "{43380DE3-72F6-4ED9-971C-4C973B93EE0D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
