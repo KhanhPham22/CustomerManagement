@@ -38,7 +38,9 @@ CustomerManagement
     ├── Components
     ├── Models
     └── Services
-**Architecture**
+```
+## Architecture
+```text
 Blazor UI
     ↓ HTTP
 CustomersController
@@ -48,12 +50,14 @@ CustomerService
 Entity Framework Core
     ↓
 SQL Server
-**Getting Started**
-1. Prerequisites
+```
+## Getting Started
+### 1. Prerequisites
 .NET 8 SDK
 SQL Server
 Visual Studio 2022
-2. Configure the database
+
+### 2. Configure the database
 
 Update the connection string in:
 
@@ -64,12 +68,14 @@ Example:
 "ConnectionStrings": {
   "DefaultConnection": "Server=localhost;Database=CustomerManagementDb;Trusted_Connection=True;TrustServerCertificate=True;"
 }
-3. Apply database migration
+
+### 3. Apply database migration
 
 Open Visual Studio Package Manager Console and run:
 
 Update-Database
-4. Run the application
+
+### 4. Run the application
 
 Start both:
 
@@ -78,24 +84,25 @@ CustomerManagement.Blazor
 
 The API provides Swagger for testing the endpoints.
 
-**Default Login**
+## Default Login
 Username: admin
 Password: Admin@123
 
 This account is created automatically by the database seeder for demonstration purposes.
 
-**API Endpoints**
-Method	Endpoint	Description
-POST	/api/auth/login	Admin login
-GET	/api/customers	Get customers
-GET	/api/customers/{id}	Get customer by ID
-POST	/api/customers	Create customer
-PUT	/api/customers/{id}	Update customer
-DELETE	/api/customers/{id}	Delete customer
+## API Endpoints
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/login` | Admin login |
+| GET | `/api/customers` | Get customers |
+| GET | `/api/customers/{id}` | Get customer by ID |
+| POST | `/api/customers` | Create customer |
+| PUT | `/api/customers/{id}` | Update customer |
+| DELETE | `/api/customers/{id}` | Delete customer |
 
 Customer endpoints require JWT authentication.
 
-**Validation**
+## Validation
 Customer Code: required, maximum 20 characters, unique
 Full Name: required, maximum 100 characters
 Email: optional, valid email format, unique when provided
