@@ -1,11 +1,13 @@
 ﻿using CustomerManagement.Api.DTOs;
 using CustomerManagement.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class CustomersController : ControllerBase
 {
     private readonly ICustomerService _customerService;
@@ -19,7 +21,7 @@ public class CustomersController : ControllerBase
     public async Task<ActionResult<List<CustomerDto>>> GetAll(
         [FromQuery] string? search)
     {
-        var customers = await _customerService.GetAllAsync(search);
+        var customers = await _customerService.GetCustomersAsync(search);
 
         return Ok(customers);
     }
@@ -27,7 +29,7 @@ public class CustomersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<CustomerDto>> GetById(int id)
     {
-        var customer = await _customerService.GetByIdAsync(id);
+        var customer = await _customerService.GetCustomerByIdAsync(id);
 
         if (customer == null)
             return NotFound();
@@ -39,31 +41,45 @@ public class CustomersController : ControllerBase
     public async Task<ActionResult<CustomerDto>> Create(
         CustomerRequestDto request)
     {
-        var customer = await _customerService.CreateAsync(request);
+        try
+        {
+            var customer = await _customerService.CreateCustomerAsync(request);
 
-        return CreatedAtAction(
-            nameof(GetById),
-            new { id = customer.Id },
-            customer);
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = customer.Id },
+                customer);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(
+    public async Task<ActionResult<CustomerDto>> Update(
         int id,
         CustomerRequestDto request)
     {
-        var updated = await _customerService.UpdateAsync(id, request);
+        try
+        {
+            var updated = await _customerService.UpdateCustomerAsync(id, request);
 
-        if (!updated)
-            return NotFound();
+            if (updated == null)
+                return NotFound();
 
-        return NoContent();
+            return Ok(updated);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var deleted = await _customerService.DeleteAsync(id);
+        var deleted = await _customerService.DeleteCustomerAsync(id);
 
         if (!deleted)
             return NotFound();

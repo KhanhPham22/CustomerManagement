@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace CustomerManagement.Api.DTOs;
- //dto to send customer request in clients
+
 public class CustomerRequestDto
 {
     [Required]
@@ -17,7 +17,8 @@ public class CustomerRequestDto
     public string? Email { get; set; }
 
     [Required]
-    [MaxLength(20)]
+    [RegularExpression(@"^0[35789][0-9]{8}$",
+        ErrorMessage = "Phone number must be a valid Vietnamese mobile number.")]
     public string PhoneNumber { get; set; } = string.Empty;
 
     public DateTime? DateOfBirth { get; set; }
