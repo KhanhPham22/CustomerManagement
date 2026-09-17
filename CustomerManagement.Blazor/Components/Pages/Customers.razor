@@ -4,6 +4,7 @@
 @using CustomerManagement.Blazor.Services
 @inject CustomerApiService CustomerApiService
 @inject NavigationManager Navigation
+@inject AuthService AuthService
 
 <PageTitle>Customers</PageTitle>
 
@@ -124,14 +125,11 @@ else
 
     private int currentPage = 1;
 
-    // Display 10 customers per page.
     private const int pageSize = 10;
 
-    // Calculate the total number of pages.
     private int TotalPages =>
         (int)Math.Ceiling(customers.Count / (double)pageSize);
 
-    // Show only customers belonging to the current page.
     private IEnumerable<CustomerDto> PagedCustomers =>
         customers
             .Skip((currentPage - 1) * pageSize)
@@ -139,6 +137,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        // Must login before accessing customers.
+        if (!AuthService.IsLoggedIn)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
         await LoadCustomers();
     }
 
@@ -146,10 +151,8 @@ else
     {
         isLoading = true;
 
-        // Load customers from the Web API.
         customers = await CustomerApiService.GetCustomersAsync(searchText);
 
-        // Return to the first page after reloading data.
         currentPage = 1;
 
         isLoading = false;
@@ -174,7 +177,6 @@ else
     {
         await CustomerApiService.DeleteCustomerAsync(id);
 
-        // Reload the list after deletion.
         await LoadCustomers();
     }
 
