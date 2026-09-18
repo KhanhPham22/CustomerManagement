@@ -7,9 +7,13 @@ namespace CustomerManagement.Blazor.Services;
 
 public class CustomerApiService
 {
+    // HTTP client used to communicate with the Customer API.
     private readonly HttpClient _httpClient;
+
+    // Provides the JWT token of the logged-in user.
     private readonly AuthService _authService;
 
+    // Create the API client and get the authentication service.
     public CustomerApiService(
         IHttpClientFactory httpClientFactory,
         AuthService authService)
@@ -18,10 +22,13 @@ public class CustomerApiService
         _authService = authService;
     }
 
+    // Add the JWT token to the Authorization header.
     private void AddAuthorizationHeader()
     {
+        // Clear the previous authorization header.
         _httpClient.DefaultRequestHeaders.Authorization = null;
 
+        // Add the JWT token when the user is logged in.
         if (!string.IsNullOrEmpty(_authService.Token))
         {
             _httpClient.DefaultRequestHeaders.Authorization =
@@ -31,6 +38,7 @@ public class CustomerApiService
         }
     }
 
+    // Get all customers, optionally filtered by a search keyword.
     public async Task<List<CustomerDto>> GetCustomersAsync(
         string? search = null)
     {
@@ -38,24 +46,29 @@ public class CustomerApiService
 
         var url = "api/Customers";
 
+        // Add the search keyword to the query string.
         if (!string.IsNullOrWhiteSpace(search))
         {
             url += $"?search={Uri.EscapeDataString(search)}";
         }
 
+        // Send the request and handle connection errors.
         var response = await SendAsync(
             () => _httpClient.GetAsync(url));
 
+        // Throw a user-friendly error when the API request fails.
         if (!response.IsSuccessStatusCode)
         {
             await ThrowApiError(response);
         }
 
+        // Convert the API response into a list of customers.
         return await response.Content
                    .ReadFromJsonAsync<List<CustomerDto>>()
                ?? new List<CustomerDto>();
     }
 
+    // Get a customer by ID.
     public async Task<CustomerDto?> GetCustomerAsync(int id)
     {
         AddAuthorizationHeader();
@@ -63,20 +76,24 @@ public class CustomerApiService
         var response = await SendAsync(
             () => _httpClient.GetAsync($"api/Customers/{id}"));
 
+        // Return null if the customer does not exist.
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
             return null;
         }
 
+        // Handle other API errors.
         if (!response.IsSuccessStatusCode)
         {
             await ThrowApiError(response);
         }
 
+        // Convert the API response into a customer object.
         return await response.Content
             .ReadFromJsonAsync<CustomerDto>();
     }
 
+    // Create a new customer.
     public async Task<CustomerDto> CreateCustomerAsync(object request)
     {
         AddAuthorizationHeader();
@@ -86,17 +103,20 @@ public class CustomerApiService
                 "api/Customers",
                 request));
 
+        // Handle API errors such as duplicate data.
         if (!response.IsSuccessStatusCode)
         {
             await ThrowApiError(response);
         }
 
+        // Convert the API response into the created customer.
         return await response.Content
                    .ReadFromJsonAsync<CustomerDto>()
                ?? throw new Exception(
                    "Customer was created, but the response was invalid.");
     }
 
+    // Update an existing customer by ID.
     public async Task UpdateCustomerAsync(
         int id,
         object request)
@@ -108,12 +128,14 @@ public class CustomerApiService
                 $"api/Customers/{id}",
                 request));
 
+        // Handle API errors.
         if (!response.IsSuccessStatusCode)
         {
             await ThrowApiError(response);
         }
     }
 
+    // Delete a customer by ID.
     public async Task DeleteCustomerAsync(int id)
     {
         AddAuthorizationHeader();
@@ -122,12 +144,14 @@ public class CustomerApiService
             () => _httpClient.DeleteAsync(
                 $"api/Customers/{id}"));
 
+        // Handle API errors.
         if (!response.IsSuccessStatusCode)
         {
             await ThrowApiError(response);
         }
     }
 
+    // Send an HTTP request and convert connection errors into a readable message.
     private async Task<HttpResponseMessage> SendAsync(
         Func<Task<HttpResponseMessage>> request)
     {
@@ -142,6 +166,7 @@ public class CustomerApiService
         }
     }
 
+    // Read API error responses and convert them into readable exceptions.
     private static async Task ThrowApiError(
         HttpResponseMessage response)
     {
@@ -154,8 +179,7 @@ public class CustomerApiService
                 using var json = JsonDocument.Parse(content);
                 var root = json.RootElement;
 
-                // Backend custom error:
-                // { "message": "Customer code already exists." }
+                // Read a custom error message returned by the backend.
                 if (root.TryGetProperty(
                         "message",
                         out var message))
@@ -168,14 +192,7 @@ public class CustomerApiService
                     }
                 }
 
-                // ASP.NET Core validation error:
-                // {
-                //   "errors": {
-                //      "PhoneNumber": [
-                //          "Phone number must be..."
-                //      ]
-                //   }
-                // }
+                // Read ASP.NET Core validation error messages.
                 if (root.TryGetProperty(
                         "errors",
                         out var errors))
@@ -188,6 +205,7 @@ public class CustomerApiService
                             continue;
                         }
 
+                        // Get the first validation message for the field.
                         var firstMessage =
                             error.Value.EnumerateArray()
                                 .Select(x => x.GetString())
@@ -203,14 +221,16 @@ public class CustomerApiService
             }
             catch (JsonException)
             {
-                // Ignore invalid JSON and use status-based message.
+                // Ignore invalid JSON and use the HTTP status message.
             }
         }
 
+        // Use a default message based on the HTTP status code.
         throw new Exception(
             GetStatusMessage(response.StatusCode));
     }
 
+    // Convert HTTP status codes into user-friendly error messages.
     private static string GetStatusMessage(
         System.Net.HttpStatusCode statusCode)
     {

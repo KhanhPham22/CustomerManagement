@@ -17,6 +17,7 @@
 }
 else
 {
+    // Form for creating or updating a customer.
     <EditForm Model="customer" OnValidSubmit="HandleSubmit">
         <DataAnnotationsValidator />
 
@@ -63,6 +64,7 @@ else
             </label>
         </div>
 
+        // Display an error message if the API request fails.
         @if (!string.IsNullOrWhiteSpace(errorMessage))
         {
             <div class="alert alert-danger">
@@ -83,17 +85,21 @@ else
 }
 
 @code {
+    // Receives the customer ID from the edit URL.
     [Parameter]
     public int? Id { get; set; }
 
+    // Stores the customer data entered in the form.
     private CustomerRequestModel customer = new();
 
     private bool isLoading;
 
     private string? errorMessage;
 
+    // Determines whether the page is in Add or Edit mode.
     private bool IsEditMode => Id.HasValue;
 
+    // Load existing customer data when editing.
     protected override async Task OnInitializedAsync()
     {
         if (!IsEditMode)
@@ -105,12 +111,14 @@ else
 
         var existingCustomer = await CustomerApiService.GetCustomerAsync(Id!.Value);
 
+        // Redirect to the customer list if the customer does not exist.
         if (existingCustomer == null)
         {
             Navigation.NavigateTo("/customers");
             return;
         }
 
+        // Fill the form with the existing customer's data.
         customer = new CustomerRequestModel
             {
                 CustomerCode = existingCustomer.CustomerCode,
@@ -124,34 +132,41 @@ else
         isLoading = false;
     }
 
+    // Handle form submission for both creating and updating customers.
     private async Task HandleSubmit()
     {
         errorMessage = null;
 
         try
         {
+            // Update the existing customer in Edit mode.
             if (IsEditMode)
             {
                 await CustomerApiService.UpdateCustomerAsync(Id!.Value, customer);
             }
+            // Create a new customer in Add mode.
             else
             {
                 await CustomerApiService.CreateCustomerAsync(customer);
             }
 
+            // Return to the customer list after a successful operation.
             Navigation.NavigateTo("/customers");
         }
         catch (Exception ex)
         {
+            // Display the error returned from the API.
             errorMessage = ex.Message;
         }
     }
 
+    // Cancel the operation and return to the customer list.
     private void Cancel()
     {
         Navigation.NavigateTo("/customers");
     }
 
+    // Defines the form model and its validation rules.
     private class CustomerRequestModel
     {
         [Required]
